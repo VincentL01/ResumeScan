@@ -31,6 +31,7 @@ Under the hood, ResumeScan uses the following **LangGraph agents**:
 
 ## 📂 Project Structure
 
+```
 ResumeScan/
 ├── main.py # Streamlit frontend
 ├── .env # Your Gemini API key
@@ -43,6 +44,7 @@ ResumeScan/
 │ └── JD/ # Sample job descriptions in markdown format
 └── .streamlit/
   └── config.toml # Streamlit config to disable reload bug
+```
 
 ---
 
