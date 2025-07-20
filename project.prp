@@ -1,0 +1,37 @@
+Title: Resume Scanner
+
+Objective: Build a web tool to:
+- Select a Job Description (JD) from stored .md files in documents/JD and display the list for user selection.
+- Upload a candidate resume (PDF).
+- Use LangGraph to coordinate Google Gemini API agents to analyze the match between the selected JD and uploaded resume.
+- If the match score is >75%, automatically generate a set of interview questions for the applicant (as described in project.md) using Gemini API.
+
+Core_Features:
+- JD_Selection: List and select .md files from documents/JD.
+- Resume_Upload: Upload resume in PDF format.
+- LangGraph_Orchestration: Use LangGraph to coordinate Gemini API agents for resume-JD matching.
+- Scoring: Calculate match score (percentage).
+- Auto_Questionnaire: If score >75%, generate tailored questionnaire using Gemini API.
+- Reporting: Display match score, missing skills, and generated questions.
+
+Technical_Stack:
+- Language: Python
+- Libraries:
+  - PDF_Parsing: pdfplumber
+  - DOCX_Parsing: python-docx
+  - NLP: spaCy or NLTK
+- Web_Framework: Flask or FastAPI for the user interface.
+
+UI:
+- A simple web-based interface for uploading files/pasting text and viewing the analysis report.
+
+Future_Enhancements:
+- Support for additional file formats (ODT, TXT).
+- Advanced NLP for improved contextual understanding.
+- Integration with job boards like LinkedIn or Indeed.
+- User accounts for saving scan history.
+
+Core-rules:
+- Use `uv add` command to install packages not `pip install`
+- Later on if you want to run python script, use `uv run python main.py`
+- Never delete or alter the rows GEMINI_API_KEY in .env
