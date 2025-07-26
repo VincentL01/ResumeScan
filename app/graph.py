@@ -247,8 +247,6 @@ You must only respond with the regenerated questions in the same format as the o
     return state
 
 def build_resume_scan_graph():
-    print("GEMINI_MODEL_NAME", GEMINI_MODEL_NAME)
-    print("GEMINI_API_KEY", st.secrets["GEMINI_API_KEY"])
     builder = StateGraph(State)
     builder.add_node("ParseResume", resume_parser_agent)
     builder.add_node("ParseJD", jd_parser_agent)
