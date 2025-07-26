@@ -34,4 +34,4 @@ Future_Enhancements:
 Core-rules:
 - Use `uv add` command to install packages not `pip install`
 - Later on if you want to run python script, use `uv run python main.py`
-- Never delete or alter the rows GEMINI_API_KEY in .env
+- Never delete or alter the rows GOOGLE_API_KEY in .env

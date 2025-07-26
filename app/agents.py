@@ -33,12 +33,12 @@ class OpenAIAgent(Agent):
             ],
             temperature=temperature,
             max_tokens=max_token_usage,
-        )   
+        )
         return response.choices[0].message.content
 
 class GeminiAgent(Agent):
     def init_model(self):
-        genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+        genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
         self.model = genai.GenerativeModel(self.model_name)
 
     def generate(self, prompts: Union[Dict[str, str], str], temperature: float, max_token_usage: int) -> Dict[str, str]:

@@ -1,53 +1,80 @@
 import os
 import uuid
 import streamlit as st
-from typing import Dict
+from typing import Dict, TypedDict
 import google.generativeai as genai
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 from app.utils import is_acceptable_score, has_match_score
 from app.parser import extract_score
+from schema.agent_outputs.jd_analysis import JDAnalysis
+from schema.agent_outputs.resume_analysis import ResumeAnalysis
+from langchain_google_genai import ChatGoogleGenerativeAI
 
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-MODEL_NAME = st.secrets.get("GEMINI_MODEL_NAME", "gemini-1.5-flash")
+genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
+MODEL_NAME = st.secrets.get("GOOGLE_MODEL_NAME", "gemini-1.5-flash")
 QUESTIONS = 5
 VERBOSE = False
 
 # Shared input/output schema
-State = Dict[str, any]
+class State(TypedDict):
+    resume_text: str
+    jd_text: str
+    resume_analysis: ResumeAnalysis
+    jd_analysis: JDAnalysis
+    comparison_result: str
+    questions_raw: str
+    refined_questions: str
+    conversation_history: list[str]
 
 def resume_parser_agent(state: State, verbose:bool = VERBOSE) -> State:
     prompt = f"""
 You are a resume analyzer. Extract the following from this resume:
 - Profile Summary
-- Key Skills
+- Technical Skills
+- Soft Skills
 - Work Experiences
-
 Resume:
-{state['resume_text']}
+```{state['resume_text']}```
 """
-    model = genai.GenerativeModel(MODEL_NAME)
-    res = model.generate_content(prompt)
+    model = ChatGoogleGenerativeAI(model=MODEL_NAME)
+    structured_model = model.with_structured_output(ResumeAnalysis)
+    res = structured_model.invoke(prompt)
     if verbose:
-        print("DEBUG Resume Agent:", res.text)
-    state["resume_analysis"] = res.text
+        print("DEBUG Resume Agent:", "".join([res.profile_summary, res.technical_skills, res.soft_skills, res.work_experiences], "\n"))
+    state["resume_analysis"] = {
+        "profile_summary": res.profile_summary,
+        "technical_skills": res.technical_skills,
+        "soft_skills": res.soft_skills,
+        "work_experiences": res.work_experiences
+    }
     return state
 
 def jd_parser_agent(state: State, verbose:bool = VERBOSE) -> State:
     prompt = f"""
 You are a job description analyzer. Extract the following:
-- Role Summary
-- Core Responsibilities
-- Required Skills and Qualifications
-
+- Job Summary
+- Required Technical Skills
+- Preferred Technical Skills
+- Required Soft Skills
+- Preferred Soft Skills
+- Preferred Work Experiences
 JD:
 {state['jd_text']}
 """
-    model = genai.GenerativeModel(MODEL_NAME)
-    res = model.generate_content(prompt)
+    model = ChatGoogleGenerativeAI(model=MODEL_NAME)
+    structured_model = model.with_structured_output(JDAnalysis)
+    res = structured_model.invoke(prompt)
     if verbose:
-        print("DEBUG JD Agent:", res.text)
-    state["jd_analysis"] = res.text
+        print("DEBUG JD Agent:", "".join([res.job_summary, res.required_technical_skills, res.preferred_technical_skills, res.required_soft_skills, res.preferred_soft_skills, res.preferred_work_experiences], "\n"))
+    state["jd_analysis"] = {
+        "job_summary": res.job_summary,
+        "required_technical_skills": res.required_technical_skills,
+        "preferred_technical_skills": res.preferred_technical_skills,
+        "required_soft_skills": res.required_soft_skills,
+        "preferred_soft_skills": res.preferred_soft_skills,
+        "preferred_work_experiences": res.preferred_experiences
+    }
     return state
 
 def comparison_agent(state: Dict[str, str], verbose:bool = VERBOSE) -> Dict[str, str]:
@@ -142,8 +169,8 @@ def question_refinement_agent(state: State, verbose: bool = VERBOSE) -> State:
     original_questions = f"""
         **Original Questions:**
         {original_questions}
-    """ if original_questions else ""  
-    
+    """ if original_questions else ""
+
     prompt = f"""
 **System prompt:**
 You are an interview coach who is helping a user refine a set of interview questions.
@@ -197,7 +224,7 @@ You must only respond with the regenerated questions in the same format as the o
     res = model.generate_content(prompt)
     if verbose:
         print("DEBUG Refinement Agent:", res.text)
-    
+
     warning_message = "I can only help with refining the interview questions."
     if warning_message in res.text:
         state["refined_questions"] = res.text

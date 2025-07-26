@@ -53,8 +53,8 @@ Create a secrets file at `.streamlit/secrets.toml` and add your Google Gemini AP
 
 ```toml
 # .streamlit/secrets.toml
-GEMINI_API_KEY = "YOUR_API_KEY_HERE"
-GEMINI_MODEL_NAME = "gemini-1.5-flash"
+GOOGLE_API_KEY = "YOUR_API_KEY_HERE"
+GOOGLE_MODEL_NAME = "gemini-1.5-flash"
 ```
 
 ### 4. Run the Application
