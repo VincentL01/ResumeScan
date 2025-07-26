@@ -26,7 +26,7 @@ if st.button("Analyze Resume"):
             st.subheader(f"Match Score: {result['score']} / 100")
             st.markdown(f"**Missing Skills:** {', '.join(result['missing_skills'])}")
             st.markdown(f"**Profile Summary:**\n{result['summary']}")
-            if result.get('score', 0) > 75 and result.get('questions'):
+            if result.get('score', 0) >= 75 and result.get('questions'):
                 st.markdown("### Auto-Generated Interview Questionnaire")
                 for i, q in enumerate(result['questions'], 1):
                     st.markdown(f"{i}. {q['question']}")

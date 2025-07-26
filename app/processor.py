@@ -1,7 +1,7 @@
 import uuid
 from typing import Dict
 from app.graph import build_resume_scan_graph
-from app.parser import extract_score, extract_summary, extract_missing_skills
+from app.parser import extract_score, extract_summary, extract_missing_skills, question_raw_parser
 from app.utils import extract_text_from_pdf, extract_text_from_md, is_acceptable_score
 
 def analyze_resume(uploaded_resume, jd_path: str) -> Dict:
