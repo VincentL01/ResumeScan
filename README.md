@@ -1,31 +1,77 @@
-# 📄 ResumeScan – Resume & JD Analyzer
+# ResumeScan: AI-Powered Resume & JD Analyzer
 
-ResumeScan is a Streamlit-based web application that helps job applicants analyze how well their resumes align with a selected job description (JD). It leverages Gemini API and LangGraph to provide a structured comparison, a match score, missing skill highlights, and even auto-generated interview questions.
+ResumeScan is a Streamlit web application that leverages AI to analyze a candidate's resume against a job description (JD). It provides a match score, a summary of alignment, and a list of missing skills. If the match is strong, it automatically generates a set of tailored interview questions.
 
----
-
-## 🚀 Features
-
-- ✅ Upload a resume (PDF format)
-- ✅ Select a JD from markdown files
-- ✅ Get:
-  - 📊 Match Score (/100)
-  - 🧩 Missing Keywords / Skills
-  - 📋 Profile Summary
-  - ❓ Auto-generated interview questions with expected answers
-- ✅ Built with LangGraph + Gemini (LLM orchestration)
-- ✅ Modular architecture for easy extension
+A key feature of this tool is the **interactive question refiner**. After the initial questions are generated, you can chat with an AI agent to modify them, providing additional context or requesting specific changes to better suit the interview's focus.
 
 ---
 
-## 🧠 How It Works
+## 🚀 Core Features
 
-Under the hood, ResumeScan uses the following **LangGraph agents**:
+-   **📄 Resume Upload**: Supports resumes in PDF format.
+-   **📂 JD Selection**: Select a Job Description from a list of markdown files.
+-   **🤖 AI-Powered Analysis**:
+    -   **Match Score**: A percentage indicating how well the resume matches the JD.
+    -   **Profile Summary**: A brief overview of the candidate's alignment with the role.
+    -   **Missing Skills**: A list of key skills required by the JD but not found in the resume.
+-   **❓ Automatic Question Generation**: If the match score is 75% or higher, the tool generates a set of interview questions.
+-   **💬 Interactive Question Refinement**: A chat interface allows you to provide feedback to an AI agent to refine and regenerate the interview questions in real-time.
 
-1. **ResumeParserAgent** – Extracts profile summary, key skills, and work experiences.
-2. **JDParserAgent** – Extracts role summary, responsibilities, and requirements from JD.
-3. **ComparisonAgent** – Compares resume and JD to compute a match score and extract missing skills.
-4. **QuestionGenAgent** – Generates custom interview questions based on gaps and strengths.
+---
+
+## 🛠️ Tech Stack
+
+-   **Backend**: Python
+-   **Frontend**: Streamlit
+-   **AI Orchestration**: LangGraph
+-   **Language Model**: Google Gemini API
+-   **PDF Parsing**: `pdfplumber`
+
+---
+
+## ⚙️ How to Run
+
+### 1. Prerequisites
+
+-   Python 3.8+
+-   `uv` (or `pip`) for package management.
+
+### 2. Installation
+
+Clone the repository and install the required packages:
+
+```bash
+git clone <repository-url>
+cd ResumeScan
+uv venv
+uv pip install -r requirements.txt
+```
+
+### 3. API Key Configuration
+
+Create a `.env` file in the root of the project and add your Google Gemini API key:
+
+```
+GEMINI_API_KEY="YOUR_API_KEY_HERE"
+GEMINI_MODEL_NAME="gemini-1.5-flash"
+```
+
+### 4. Run the Application
+
+```bash
+streamlit run main.py
+```
+
+The application will open in your web browser.
+
+---
+
+## 🕹️ How to Use
+
+1.  **Upload a Resume**: Use the file uploader to select a PDF resume.
+2.  **Select a JD**: Choose a job description from the dropdown menu.
+3.  **Analyze**: Click the "Analyze Resume" button. The analysis results will be displayed.
+4.  **Refine Questions**: If questions are generated, a chat box will appear. Type your instructions to the AI to modify the questions and press Enter. The questions will be updated based on your feedback.
 
 ---
 
@@ -33,82 +79,15 @@ Under the hood, ResumeScan uses the following **LangGraph agents**:
 
 ```
 ResumeScan/
-├── main.py # Streamlit frontend
-├── .env # Your Gemini API key
+├── main.py                 # The main Streamlit application file
 ├── app/
-│ ├── processor.py # Core business logic
-│ ├── graph.py # LangGraph setup
-│ ├── parser.py # Extract score, summary, missing skills, questions
-│ └── utils.py # PDF/MD extraction, string parsers
+│   ├── graph.py            # Defines the LangGraph agents and workflow
+│   ├── processor.py        # Core logic for analysis and question refinement
+│   ├── parser.py           # Utility functions for parsing AI model outputs
+│   └── utils.py            # Helper functions (e.g., text extraction)
 ├── documents/
-│ └── JD/ # Sample job descriptions in markdown format
-└── .streamlit/
-  └── config.toml # Streamlit config to disable reload bug
+│   └── JD/                 # Contains the job descriptions in .md format
+├── prompts/                # Example prompts (not directly used in the app)
+├��─ .env                    # For API key storage (you need to create this)
+└── requirements.txt        # Python package dependencies
 ```
-
----
-
-## 📦 Dependencies
-
-```bash
-uv venv
-uv pip install -r requirements.txt
-```
-
-## 🧪 Demo
-
-1. Run locally:
-
-```bash
-uv run streamlit run main.py
-```
-
-2. Upload a PDF resume
-
-3. Select a JD (.md file) from documents/JD
-
-4. Click Analyze Resume
-
-5. View results
-
-## 🔐 .env Configuration
-Create a .env file in the project root:
-
-```ini
-GEMINI_API_KEY=your_api_key_here
-GEMINI_MODEL_NAME=gemini-1.5-flash
-```
-
----
-
-## 🛠 Tech Stack
-* Streamlit – Frontend framework
-* Google Gemini – LLM API
-* LangGraph – LLM orchestration
-* PyPDF2 – PDF text extraction
-* Markdown (.md) – For JD files
-
----
-
-## 📌 Roadmap
-* Add support for DOCX resumes
-* Add live editing for JD text
-* Add support for multiple JDs (different formats as well, currently only .md)
-* Improve prompt robustness via JSON schema output from Gemini  
-* Add resume categorization (domain classification)
-* Add support for multiple resumes (different formats as well, currently only .pdf)
-* Add support for multiple LLMs (currently only Gemini)
-
---- 
-
-## 🧑‍💻 Maintainer
-Developed by Thang Luong Cao (Vincent)
-For support or collaboration, reach out via GitHub or LinkedIn.
-
----
-
-## 📝 License
-MIT License – Feel free to use, modify, and contribute.
-
----
-
