@@ -17,8 +17,8 @@ def analyze_resume(uploaded_resume, jd_path: str) -> Dict:
         config={"configurable": {"thread_id": str(uuid.uuid4())}}
     )
 
-    comparison = result.get("comparison_result", "")
-    score = extract_score(comparison)
+    comparison = result.get("comparison_result_gemini", "")
+    score = result.get("comparison_score", 0)
     summary = extract_summary(comparison)
     missing_skills = extract_missing_skills(comparison)
     questions = []
