@@ -1,16 +1,15 @@
 import os
 import uuid
+import streamlit as st
 from typing import Dict
-from dotenv import load_dotenv
 import google.generativeai as genai
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 from app.utils import is_acceptable_score, has_match_score
 from app.parser import extract_score
 
-load_dotenv()
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-MODEL_NAME = os.getenv("GEMINI_MODEL_NAME", "gemini-1.5-flash")
+genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+MODEL_NAME = st.secrets.get("GEMINI_MODEL_NAME", "gemini-1.5-flash")
 QUESTIONS = 5
 VERBOSE = False
 

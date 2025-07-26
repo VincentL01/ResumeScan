@@ -1,11 +1,9 @@
 import os
 import openai
+import streamlit as st
 from typing import Dict, Union
-from dotenv import load_dotenv
 from abc import ABC, abstractmethod
 import google.generativeai as genai
-
-load_dotenv()
 
 class Agent(ABC):
     def __init__(self, model_name: str):
@@ -21,7 +19,7 @@ class Agent(ABC):
 
 class OpenAIAgent(Agent):
     def init_model(self):
-        self.client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        self.client = openai.OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
     def generate(self, prompts: Union[Dict[str, str], str], temperature: float, max_token_usage: int) -> Dict[str, str]:
         if isinstance(prompts, str):
@@ -40,7 +38,7 @@ class OpenAIAgent(Agent):
 
 class GeminiAgent(Agent):
     def init_model(self):
-        genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+        genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
         self.model = genai.GenerativeModel(self.model_name)
 
     def generate(self, prompts: Union[Dict[str, str], str], temperature: float, max_token_usage: int) -> Dict[str, str]:

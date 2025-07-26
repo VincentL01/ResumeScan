@@ -49,11 +49,12 @@ uv pip install -r requirements.txt
 
 ### 3. API Key Configuration
 
-Create a `.env` file in the root of the project and add your Google Gemini API key:
+Create a secrets file at `.streamlit/secrets.toml` and add your Google Gemini API key:
 
-```
-GEMINI_API_KEY="YOUR_API_KEY_HERE"
-GEMINI_MODEL_NAME="gemini-1.5-flash"
+```toml
+# .streamlit/secrets.toml
+GEMINI_API_KEY = "YOUR_API_KEY_HERE"
+GEMINI_MODEL_NAME = "gemini-1.5-flash"
 ```
 
 ### 4. Run the Application
@@ -88,6 +89,13 @@ ResumeScan/
 ├── documents/
 │   └── JD/                 # Contains the job descriptions in .md format
 ├── prompts/                # Example prompts (not directly used in the app)
-├��─ .env                    # For API key storage (you need to create this)
+├── .streamlit/secrets.toml # For API key storage (you need to create this)
+├── .streamlit/config.toml  # For Streamlit configuration (you need to create this)
 └── requirements.txt        # Python package dependencies
+```
+
+.streamlit/config.toml content
+```toml
+[server]
+runOnSave = false
 ```
