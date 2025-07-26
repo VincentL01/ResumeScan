@@ -5,6 +5,10 @@ services:
     environment:
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - GEMINI_MODEL_NAME=${GEMINI_MODEL_NAME}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL_NAME=${OPENAI_MODEL_NAME}
     ports:
       - 8501:8501
     restart: unless-stopped
+    volumes:
+      - ../:/app
