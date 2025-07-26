@@ -12,18 +12,18 @@ def extract_summary(comparison: str) -> str:
 def question_raw_parser(text: str) -> List[Dict[str, str]]:
     """
     Extracts question-answer pairs from raw markdown-style Gemini output.
-    Expects format with **Question:** and **Expected Answer:**
+    Looks for **Question:** and **Expected Answer:** blocks.
     """
     questions = []
     blocks = re.split(r"\*\*Question \d+:.*?\*\*", text)
 
     for block in blocks:
-        q_match = re.search(r"\*\*Question:\*\*\s*['\"]?(.*?)(['\"]|\n)", block, re.DOTALL)
-        a_match = re.search(r"\*\*Expected Answer:\*\*\s*(.*?)(\n|$)", block, re.DOTALL)
+        q_match = re.search(r"\*\*Question:\*\*\s*(.*?)(?=\*\*Expected Answer:\*\*)", block, re.DOTALL)
+        a_match = re.search(r"\*\*Expected Answer:\*\*\s*(.*?)(?=\n{2,}|\Z)", block, re.DOTALL)
         if q_match and a_match:
             questions.append({
-                "question": q_match.group(1).strip(),
-                "expected_answer": a_match.group(1).strip()
+                "question": q_match.group(1).strip().replace('\n', ' '),
+                "expected_answer": a_match.group(1).strip().replace('\n', ' ')
             })
     return questions
 

@@ -1,0 +1,20 @@
+Title: Interactive Interview Question Refinement
+
+Objective:
+After the initial set of interview questions is generated, provide an interactive chat interface for the user to refine the questions. The user can provide additional context or specific instructions to the AI, which will then regenerate the questions based on the new information.
+
+Core_Features:
+- **Interactive_Chat_Interface:** After the initial questions are displayed, a chat input field will appear, allowing the user to communicate with a dedicated "Question Refinement" AI agent.
+- **Question_Regeneration:** The user's input will be combined with the original analysis (`comparison_result`) to generate a new set of interview questions. The updated questions will replace the previous set in the UI.
+- **Conversation_History:** The conversation with the refinement agent should be displayed, showing both user prompts and AI responses (i.e., the regenerated questions).
+
+Guardrails:
+- **Scoped_Conversation:** the Question Refinement agent must be strictly focused on modifying the interview questions. It should not engage in off-topic conversations.
+- **Task_Enforcement:** The agent's primary task is to accept new information and use it to regenerate the questions. It should not answer general questions or perform other tasks.
+- **Warning_Message:** If the user's prompt is detected to be out of scope, the agent will respond with a predefined warning message, reminding the user to provide information relevant to refining the interview questions. For example: "I can only help with refining the interview questions. Please provide more information about the candidate or the role to help me improve the questions."
+
+Technical_Implementation_Notes:
+- A new agent, `QuestionRefinementAgent`, should be created.
+- The `State` in `app/graph.py` will need to be updated to manage the conversation history.
+- The LangGraph in `app/graph.py` will be extended to include a new node for the interactive refinement loop.
+- The Streamlit UI in `main.py` will be updated to include the chat interface and handle the interactive loop.

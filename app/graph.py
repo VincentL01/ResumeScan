@@ -11,10 +11,11 @@ from app.parser import extract_score
 load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 MODEL_NAME = os.getenv("GEMINI_MODEL_NAME", "gemini-1.5-flash")
+QUESTIONS = 5
 VERBOSE = False
 
 # Shared input/output schema
-State = Dict[str, str]
+State = Dict[str, any]
 
 def resume_parser_agent(state: State, verbose:bool = VERBOSE) -> State:
     prompt = f"""
@@ -52,15 +53,16 @@ JD:
 
 def comparison_agent(state: Dict[str, str], verbose:bool = VERBOSE) -> Dict[str, str]:
     prompt = f"""
+**System prompt:**
 You are a comparison engine. Given a resume and a job description (JD), do the following:
 
+**Instructions:**
 1. Identify and list **Matching Skills** using bullet points, with categories such as Programming, Cloud, Storage, etc.
 2. Identify **Missing Skills**, even if partially present or indirectly implied. Use the format:
    * **<Skill Category>:** Explanation
 3. Write a **Summary of Alignment** — 2 to 4 sentences summarizing the match.
 4. Assign a **Match Score (/100)** considering both technical and soft skill alignment.
-
-### Example Format:
+5. Use the following example format:
 
 **Matching Skills:**
 
@@ -98,13 +100,15 @@ JD Analysis:
 
 def question_generation_agent(state: State, verbose:bool = VERBOSE) -> State:
     prompt = f"""
-You are an interview coach. Based on the following analysis, generate 3 interview questions with expected answers. The goal is to probe the candidate further on their strengths and address possible gaps.
+**System prompt:**
+You are an interview coach. Based on the following analysis, generate {QUESTIONS} interview questions with expected answers. The goal is to probe the candidate further on their strengths and address possible gaps.
 
-For each question, return:
+**Instructions:**
+1. The number of questions if not given in the user's request, it should be default to {QUESTIONS} questions.
+2. For each question, return:
 - The **Question**
 - The **Expected Answer**
-
-Use the following format:
+3. Use the following format:
 
 **Question 1: Topic Title**
 
@@ -126,6 +130,86 @@ Comparison Result:
     if verbose:
         print("DEBUG Question Agent:", res.text)
     state["questions_raw"] = res.text
+    return state
+
+def question_refinement_agent(state: State, verbose: bool = VERBOSE) -> State:
+    """
+    Agent to refine interview questions based on user feedback.
+    """
+    user_message = state.get("user_message", "")
+    history = state.get("conversation_history", [])
+
+    original_questions = state.get("questions_raw", "")
+    original_questions = f"""
+        **Original Questions:**
+        {original_questions}
+    """ if original_questions else ""  
+    
+    prompt = f"""
+**System prompt:**
+You are an interview coach who is helping a user refine a set of interview questions.
+Your task is to regenerate the interview questions based on new information provided by the user.
+You must only respond with the regenerated questions in the same format as the original, or a warning if the user's request is off-topic.
+
+**Guardrails:**
+- Your ONLY function is to refine interview questions, add or remove questions based on user's request.
+- DO NOT answer questions or engage in conversation about anything else.
+- If the user asks for something other than refining the questions, respond with ONLY the following message: "I can only help with refining the interview questions. Please provide more information about the candidate or the role to help me improve the questions."
+
+**Original Comparison Result:**
+{state['comparison_result']}
+
+{original_questions}
+
+**Conversation History:**
+{history}
+
+**User's Request:**
+{user_message}
+
+**Instructions:**
+1. Based on the user's request, regenerate the interview questions with expected answers.
+2. The number of questions if not given in the user's request, it should be default to the same amount as the number of questions in the last response (if the last response is empty, it should be default to {QUESTIONS} questions)
+3. If user asked for more questions, you must repeat the original questions and add more questions based on the quantities asked by the user.
+4. If User asked you to modify a specific question, you must modify the specific question based on the user's request, other questions must be repeated exactly the same as original.
+5. If user asked for less questions without specify which questions to remove, you must remove from the last questions.
+6. If user asked for less questions and specify which questions to remove, you must remove the specified questions.
+7. Use the following format:
+
+**Question 1: Topic Title**
+
+**Question:** "..."
+
+**Expected Answer:** ...
+
+**Question 2: Another Topic**
+
+**Question:** "..."
+
+**Expected Answer:** ...
+
+**Question 3: Another Topic**
+
+**Question:** "..."
+
+**Expected Answer:** ...
+"""
+    model = genai.GenerativeModel(MODEL_NAME)
+    res = model.generate_content(prompt)
+    if verbose:
+        print("DEBUG Refinement Agent:", res.text)
+    
+    warning_message = "I can only help with refining the interview questions."
+    if warning_message in res.text:
+        state["refined_questions"] = res.text
+    else:
+        state["refined_questions"] = res.text
+        # Update history
+        if isinstance(history, list):
+            history.append({"role": "user", "content": user_message})
+            history.append({"role": "assistant", "content": res.text})
+            state["conversation_history"] = history
+
     return state
 
 def build_resume_scan_graph():

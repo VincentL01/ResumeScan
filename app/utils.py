@@ -1,27 +1,25 @@
 import re
-from typing import List, Dict
-import PyPDF2
-import tempfile
+import pdfplumber
+from typing import IO
 
-def extract_text_from_pdf(uploaded_file) -> str:
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
-        tmp.write(uploaded_file.read())
-        tmp_path = tmp.name
-    text = ""
-    with open(tmp_path, "rb") as f:
-        reader = PyPDF2.PdfReader(f)
-        for page in reader.pages:
-            text += page.extract_text() or ""
-    return text
+def is_acceptable_score(score: int, threshold: int = 75) -> bool:
+    return score >= threshold
 
-def extract_text_from_md(md_path: str) -> str:
-    with open(md_path, "r", encoding="utf-8") as f:
+def has_match_score(text: str) -> bool:
+    return "match score" in text.lower()
+
+def get_resume_text(resume_file: IO[bytes]) -> str:
+    """
+    Extracts text from an uploaded PDF file.
+    """
+    with pdfplumber.open(resume_file) as pdf:
+        return "\n".join(page.extract_text() for page in pdf.pages)
+
+def get_jd_text(jd_path: str) -> str:
+    """
+    Extracts text from a markdown file.
+    """
+    with open(jd_path, 'r', encoding='utf-8') as f:
         return f.read()
-
-def is_acceptable_score(score: int) -> bool:
-    return score >= 75
-
-def has_match_score(comparison: str) -> bool:
-    return "match score" in comparison.lower()
 
 
