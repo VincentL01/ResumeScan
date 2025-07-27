@@ -7,9 +7,21 @@ from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
 from app.utils import is_acceptable_score, has_match_score
 from app.parser import extract_score
+import openai
 
-genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-MODEL_NAME = st.secrets.get("GEMINI_MODEL_NAME", "gemini-1.5-flash")
+GEMINI_MODEL_NAME = st.secrets.get("GEMINI_MODEL_NAME", "gemini-2.5-flash")
+api_key=st.secrets["GEMINI_API_KEY"]
+genai.configure(api_key=api_key)
+geminiModel = genai.GenerativeModel(GEMINI_MODEL_NAME)
+
+OPENAI_MODEL_NAME = st.secrets.get("OPENAI_MODEL_NAME", "gpt-4o-mini")
+client = openai.OpenAI(
+    base_url="https://aiportalapi.stu-platform.live/use",
+    api_key=st.secrets["OPENAI_API_KEY"]
+)
+
+model = geminiModel
+
 QUESTIONS = 5
 VERBOSE = False
 
@@ -26,7 +38,6 @@ You are a resume analyzer. Extract the following from this resume:
 Resume:
 {state['resume_text']}
 """
-    model = genai.GenerativeModel(MODEL_NAME)
     res = model.generate_content(prompt)
     if verbose:
         print("DEBUG Resume Agent:", res.text)
@@ -43,14 +54,13 @@ You are a job description analyzer. Extract the following:
 JD:
 {state['jd_text']}
 """
-    model = genai.GenerativeModel(MODEL_NAME)
     res = model.generate_content(prompt)
     if verbose:
         print("DEBUG JD Agent:", res.text)
     state["jd_analysis"] = res.text
     return state
 
-def comparison_agent(state: Dict[str, str], verbose:bool = VERBOSE) -> Dict[str, str]:
+def comparison_agent(state: Dict[str, str], model_type: str = "gemini", verbose:bool = VERBOSE) -> Dict[str, str]:
     prompt = f"""
 **System prompt:**
 You are a comparison engine. Given a resume and a job description (JD), do the following:
@@ -90,11 +100,38 @@ Resume Analysis:
 JD Analysis:
 {state['jd_analysis']}
 """
-    model = genai.GenerativeModel(MODEL_NAME)
-    res = model.generate_content(prompt)
+    if model_type == "openai":
+        openai_response = client.chat.completions.create(
+            model=OPENAI_MODEL_NAME,
+            messages=[
+                {"role": "user", "content": prompt}
+            ],
+        )
+        result = openai_response.choices[0].message.content
+        state["comparison_result_openai"] = result
+        if verbose:
+            print("DEBUG Comparison Agent (OpenAI):", result)
+    else:
+        res = model.generate_content(prompt)
+        state["comparison_result_gemini"] = res.text
+        if verbose:
+            print("DEBUG Comparison Agent (Gemini):", res.text)
+    genai.configure(api_key=api_key)
+    return state
+
+def average_comparison_results(state: Dict[str, str], verbose:bool = VERBOSE) -> Dict[str, str]:
+    from app.parser import extract_score
+    gemini_result = state.get("comparison_result_gemini", "")
+    openai_result = state.get("comparison_result_openai", "")
+    gemini_score = extract_score(gemini_result)
+    openai_score = extract_score(openai_result)
+    average_score = int(round((gemini_score + openai_score) / 2))
+    
     if verbose:
-        print("DEBUG Comparison Agent:", res.text)
-    state["comparison_result"] = res.text
+        print("DEBUG Average Node (Gemini):", gemini_result)
+        print("DEBUG Average Node (OpenAI):", openai_result)
+        print("DEBUG Average Node (Average Score):", average_score)
+    state["comparison_score"] = average_score
     return state
 
 def question_generation_agent(state: State, verbose:bool = VERBOSE) -> State:
@@ -122,9 +159,8 @@ You are an interview coach. Based on the following analysis, generate {QUESTIONS
 **Expected Answer:** ...
 
 Comparison Result:
-{state['comparison_result']}
+{state['comparison_result_gemini']}
 """
-    model = genai.GenerativeModel(MODEL_NAME)
     res = model.generate_content(prompt)
     if verbose:
         print("DEBUG Question Agent:", res.text)
@@ -156,7 +192,7 @@ You must only respond with the regenerated questions in the same format as the o
 - If the user asks for something other than refining the questions, respond with ONLY the following message: "I can only help with refining the interview questions. Please provide more information about the candidate or the role to help me improve the questions."
 
 **Original Comparison Result:**
-{state['comparison_result']}
+{state['comparison_result_gemini']}
 
 {original_questions}
 
@@ -193,7 +229,6 @@ You must only respond with the regenerated questions in the same format as the o
 
 **Expected Answer:** ...
 """
-    model = genai.GenerativeModel(MODEL_NAME)
     res = model.generate_content(prompt)
     if verbose:
         print("DEBUG Refinement Agent:", res.text)
@@ -215,14 +250,18 @@ def build_resume_scan_graph():
     builder = StateGraph(State)
     builder.add_node("ParseResume", resume_parser_agent)
     builder.add_node("ParseJD", jd_parser_agent)
-    builder.add_node("Compare", comparison_agent)
+    builder.add_node("CompareGemini", lambda state, verbose=VERBOSE: comparison_agent(state, model_type="gemini", verbose=verbose))
+    builder.add_node("CompareOpenAI", lambda state, verbose=VERBOSE: comparison_agent(state, model_type="openai", verbose=verbose))
+    builder.add_node("AverageCompare", average_comparison_results)
     builder.add_node("GenerateQuestions", question_generation_agent)
 
     builder.set_entry_point("ParseResume")
     builder.add_edge("ParseResume", "ParseJD")
-    builder.add_edge("ParseJD", "Compare")
-    builder.add_conditional_edges("Compare", lambda state:
-        "GenerateQuestions" if has_match_score(state["comparison_result"]) and is_acceptable_score(extract_score(state["comparison_result"]))
+    builder.add_edge("ParseJD", "CompareGemini")
+    builder.add_edge("CompareGemini", "CompareOpenAI")
+    builder.add_edge("CompareOpenAI", "AverageCompare")
+    builder.add_conditional_edges("AverageCompare", lambda state:
+        "GenerateQuestions" if is_acceptable_score(state["comparison_score"])
         else END,
         {
             "GenerateQuestions": "GenerateQuestions",
