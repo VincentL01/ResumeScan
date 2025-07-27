@@ -32,7 +32,7 @@ def analyze_resume(uploaded_resume, jd_path: str) -> Dict:
         "missing_skills": missing_skills,
         "summary": summary,
         "questions": questions,
-        "comparison_result": comparison
+        "comparison_result_gemini": comparison
     }
 
 def refine_questions(comparison_result: str, user_message: str, conversation_history: list) -> dict:
@@ -40,7 +40,7 @@ def refine_questions(comparison_result: str, user_message: str, conversation_his
     Calls the question refinement agent.
     """
     state = {
-        "comparison_result": comparison_result,
+        "comparison_result_gemini": comparison_result,
         "user_message": user_message,
         "conversation_history": conversation_history,
     }

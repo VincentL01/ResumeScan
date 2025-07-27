@@ -62,7 +62,7 @@ if st.session_state.analysis_result:
         if user_prompt:
             with st.spinner("Thinking..."):
                 refinement_result = refine_questions(
-                    comparison_result=result['comparison_result'],
+                    comparison_result=result['comparison_result_gemini'],
                     user_message=user_prompt,
                     conversation_history=st.session_state.conversation_history
                 )
