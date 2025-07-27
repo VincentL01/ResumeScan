@@ -3,6 +3,8 @@ from typing import Dict
 from app.graph import build_resume_scan_graph, question_refinement_agent
 from app.parser import extract_score, extract_summary, extract_missing_skills, question_raw_parser
 from app.utils import get_resume_text, get_jd_text, is_acceptable_score
+from datetime import datetime
+
 
 def analyze_resume(uploaded_resume, jd_path: str) -> Dict:
     resume_text = get_resume_text(uploaded_resume)
@@ -56,4 +58,3 @@ def refine_questions(comparison_result: str, user_message: str, conversation_his
     questions = question_raw_parser(refined_questions_raw)
     
     return {"questions": questions, "conversation_history": result_state.get("conversation_history", [])}
-

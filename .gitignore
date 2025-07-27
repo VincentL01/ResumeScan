@@ -7,5 +7,8 @@ wheels/
 *.egg-info
 .env
 
+# Ignore Streamlit secrets
+.streamlit/secrets.toml
+
 # Virtual environments
 .venv
