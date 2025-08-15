@@ -1,28 +1,13 @@
-import os
-import uuid
-import streamlit as st
 from typing import Dict
-import google.generativeai as genai
 from langgraph.graph import StateGraph, END
 from langgraph.checkpoint.memory import MemorySaver
-from app.utils import is_acceptable_score, has_match_score
+from app.utils import is_acceptable_score
 from app.parser import extract_score
-import openai
+from app.agents import OpenAIAgent
+from app.configs import QUESTIONS, CHAT_MODEL
 
-GEMINI_MODEL_NAME = st.secrets.get("GEMINI_MODEL_NAME", "gemini-2.5-flash")
-api_key=st.secrets["GEMINI_API_KEY"]
-genai.configure(api_key=api_key)
-geminiModel = genai.GenerativeModel(GEMINI_MODEL_NAME)
+agent = OpenAIAgent(CHAT_MODEL)
 
-OPENAI_MODEL_NAME = st.secrets.get("OPENAI_MODEL_NAME", "gpt-4o-mini")
-client = openai.OpenAI(
-    base_url="https://aiportalapi.stu-platform.live/use",
-    api_key=st.secrets["OPENAI_API_KEY"]
-)
-
-model = geminiModel
-
-QUESTIONS = 5
 VERBOSE = False
 
 # Shared input/output schema
@@ -38,10 +23,10 @@ You are a resume analyzer. Extract the following from this resume:
 Resume:
 {state['resume_text']}
 """
-    res = model.generate_content(prompt)
+    res = agent.generate(prompt)
     if verbose:
-        print("DEBUG Resume Agent:", res.text)
-    state["resume_analysis"] = res.text
+        print("DEBUG Resume Agent:", res)
+    state["resume_analysis"] = res
     return state
 
 def jd_parser_agent(state: State, verbose:bool = VERBOSE) -> State:
@@ -54,13 +39,13 @@ You are a job description analyzer. Extract the following:
 JD:
 {state['jd_text']}
 """
-    res = model.generate_content(prompt)
+    res = agent.generate(prompt)
     if verbose:
-        print("DEBUG JD Agent:", res.text)
-    state["jd_analysis"] = res.text
+        print("DEBUG JD Agent:", res)
+    state["jd_analysis"] = res
     return state
 
-def comparison_agent(state: Dict[str, str], model_type: str = "gemini", verbose:bool = VERBOSE) -> Dict[str, str]:
+def comparison_agent(state: Dict[str, str], verbose:bool = VERBOSE) -> Dict[str, str]:
     prompt = f"""
 **System prompt:**
 You are a comparison engine. Given a resume and a job description (JD), do the following:
@@ -100,38 +85,10 @@ Resume Analysis:
 JD Analysis:
 {state['jd_analysis']}
 """
-    if model_type == "openai":
-        openai_response = client.chat.completions.create(
-            model=OPENAI_MODEL_NAME,
-            messages=[
-                {"role": "user", "content": prompt}
-            ],
-        )
-        result = openai_response.choices[0].message.content
-        state["comparison_result_openai"] = result
-        if verbose:
-            print("DEBUG Comparison Agent (OpenAI):", result)
-    else:
-        res = model.generate_content(prompt)
-        state["comparison_result_gemini"] = res.text
-        if verbose:
-            print("DEBUG Comparison Agent (Gemini):", res.text)
-    genai.configure(api_key=api_key)
-    return state
-
-def average_comparison_results(state: Dict[str, str], verbose:bool = VERBOSE) -> Dict[str, str]:
-    from app.parser import extract_score
-    gemini_result = state.get("comparison_result_gemini", "")
-    openai_result = state.get("comparison_result_openai", "")
-    gemini_score = extract_score(gemini_result)
-    openai_score = extract_score(openai_result)
-    average_score = int(round((gemini_score + openai_score) / 2))
-    
+    result = agent.generate(prompt)
+    state["comparison_result"] = result
     if verbose:
-        print("DEBUG Average Node (Gemini):", gemini_result)
-        print("DEBUG Average Node (OpenAI):", openai_result)
-        print("DEBUG Average Node (Average Score):", average_score)
-    state["comparison_score"] = average_score
+        print("DEBUG Comparison Agent (OpenAI):", result)
     return state
 
 def question_generation_agent(state: State, verbose:bool = VERBOSE) -> State:
@@ -159,12 +116,12 @@ You are an interview coach. Based on the following analysis, generate {QUESTIONS
 **Expected Answer:** ...
 
 Comparison Result:
-{state['comparison_result_gemini']}
+{state['comparison_result']}
 """
-    res = model.generate_content(prompt)
+    res = agent.generate(prompt)
     if verbose:
-        print("DEBUG Question Agent:", res.text)
-    state["questions_raw"] = res.text
+        print("DEBUG Question Agent:", res)
+    state["questions_raw"] = res
     return state
 
 def question_refinement_agent(state: State, verbose: bool = VERBOSE) -> State:
@@ -192,7 +149,7 @@ You must only respond with the regenerated questions in the same format as the o
 - If the user asks for something other than refining the questions, respond with ONLY the following message: "I can only help with refining the interview questions. Please provide more information about the candidate or the role to help me improve the questions."
 
 **Original Comparison Result:**
-{state['comparison_result_gemini']}
+{state['comparison_result']}
 
 {original_questions}
 
@@ -205,7 +162,7 @@ You must only respond with the regenerated questions in the same format as the o
 **Instructions:**
 1. Based on the user's request, regenerate the interview questions with expected answers.
 2. The number of questions if not given in the user's request, it should be default to the same amount as the number of questions in the last response (if the last response is empty, it should be default to {QUESTIONS} questions)
-3. If user asked for more questions, you must repeat the original questions and add more questions based on the quantities asked by the user.
+3. If user asked for more questions, you must repeat EXACTLY the original questions and add more questions based on the quantities asked by the user.
 4. If User asked you to modify a specific question, you must modify the specific question based on the user's request, other questions must be repeated exactly the same as original.
 5. If user asked for less questions without specify which questions to remove, you must remove from the last questions.
 6. If user asked for less questions and specify which questions to remove, you must remove the specified questions.
@@ -229,19 +186,19 @@ You must only respond with the regenerated questions in the same format as the o
 
 **Expected Answer:** ...
 """
-    res = model.generate_content(prompt)
+    res = agent.generate(prompt)
     if verbose:
-        print("DEBUG Refinement Agent:", res.text)
+        print("DEBUG Refinement Agent:", res)
     
     warning_message = "I can only help with refining the interview questions."
-    if warning_message in res.text:
-        state["refined_questions"] = res.text
+    if warning_message in res:
+        state["refined_questions"] = res
     else:
-        state["refined_questions"] = res.text
+        state["refined_questions"] = res
         # Update history
         if isinstance(history, list):
             history.append({"role": "user", "content": user_message})
-            history.append({"role": "assistant", "content": res.text})
+            history.append({"role": "assistant", "content": res})
             state["conversation_history"] = history
 
     return state
@@ -250,18 +207,14 @@ def build_resume_scan_graph():
     builder = StateGraph(State)
     builder.add_node("ParseResume", resume_parser_agent)
     builder.add_node("ParseJD", jd_parser_agent)
-    builder.add_node("CompareGemini", lambda state, verbose=VERBOSE: comparison_agent(state, model_type="gemini", verbose=verbose))
-    builder.add_node("CompareOpenAI", lambda state, verbose=VERBOSE: comparison_agent(state, model_type="openai", verbose=verbose))
-    builder.add_node("AverageCompare", average_comparison_results)
+    builder.add_node("Compare", comparison_agent)
     builder.add_node("GenerateQuestions", question_generation_agent)
 
     builder.set_entry_point("ParseResume")
     builder.add_edge("ParseResume", "ParseJD")
-    builder.add_edge("ParseJD", "CompareGemini")
-    builder.add_edge("CompareGemini", "CompareOpenAI")
-    builder.add_edge("CompareOpenAI", "AverageCompare")
-    builder.add_conditional_edges("AverageCompare", lambda state:
-        "GenerateQuestions" if is_acceptable_score(state["comparison_score"])
+    builder.add_edge("ParseJD", "Compare")
+    builder.add_conditional_edges("Compare", lambda state:
+        "GenerateQuestions" if is_acceptable_score(extract_score(state["comparison_result"]))
         else END,
         {
             "GenerateQuestions": "GenerateQuestions",
