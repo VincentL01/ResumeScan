@@ -10,13 +10,8 @@ from app.chat_memory import ChatMemory
 st.set_page_config(page_title="ResumeScan", layout="centered")
 st.title("Resume & JD Analyzer")
 
-# ----------------- Inline rename (unchanged) -----------------
+# ----------------- Inline rename (same as before) -----------------
 def inline_rename(name: str, comp_id: str):
-    """
-    Returns {'action':'rename', 'name': '<new name>'} when Enter is pressed after double-click.
-    Esc or clicking outside cancels. Otherwise returns None.
-    comp_id should be unique per session row (e.g., f"rename_{session_id}").
-    """
     wrap_id   = f"{comp_id}_wrap"
     label_id  = f"{comp_id}_label"
     input_id  = f"{comp_id}_editor"
@@ -51,9 +46,8 @@ def inline_rename(name: str, comp_id: str):
         if (save) {{
           const v = editor.value.trim();
           if (v && v !== original) {{
-            // NEW: update visible label immediately so UI reflects the change
-            label.textContent = v;           // NEW
-            original = v;                    // NEW
+            label.textContent = v;
+            original = v;
             sendValue({{ action: 'rename', name: v }});
           }} else {{
             sendValue(null);
@@ -90,12 +84,14 @@ def inline_rename(name: str, comp_id: str):
 
 # ----------------- Services -----------------
 processor = ResumeProcessor()
-memory = ChatMemory()  # loads data/sessions.json (creates if missing)
+memory = ChatMemory()
 memory.ensure_one_session()
 
-# Streamlit UI confirmation state
+# UI state
 if "confirm_delete" not in st.session_state:
     st.session_state.confirm_delete = None
+if "show_extra_criteria" not in st.session_state:
+    st.session_state.show_extra_criteria = False
 
 # ----------------- Sidebar: Sessions -----------------
 with st.sidebar:
@@ -108,20 +104,16 @@ with st.sidebar:
     for session_id, session_data in list(memory.sessions.items()):
         with st.container(border=True):
             col_name, col_x = st.columns([0.9, 0.1])
+
             with col_name:
-                # Use name hash to change DOM IDs when the name changes
                 name_hash = abs(hash(session_data["name"])) % 1_000_000
-                comp_result = inline_rename(
-                    session_data["name"],
-                    comp_id=f"rename_{session_id}_{name_hash}",   # <-- changed
-                )
+                comp_result = inline_rename(session_data["name"], comp_id=f"rename_{session_id}_{name_hash}")
                 if isinstance(comp_result, dict) and comp_result.get("action") == "rename":
                     new_name = comp_result.get("name", "").strip()
                     if new_name:
                         memory.rename_session(session_id, new_name)
                         st.rerun()
 
-                # Open/select
                 st.caption("Double-click to rename • Enter to save • Esc/click outside to cancel")
                 if st.button("Open", key=f"open_{session_id}"):
                     memory.switch_session(session_id)
@@ -132,10 +124,8 @@ with st.sidebar:
                     st.session_state.confirm_delete = session_id
                     st.rerun()
 
-    # Delete confirmation
     if st.session_state.confirm_delete is not None:
         sid = st.session_state.confirm_delete
-        # Guard against race if sid was deleted already
         if sid not in memory.sessions:
             st.session_state.confirm_delete = None
             st.rerun()
@@ -152,7 +142,6 @@ with st.sidebar:
                     st.session_state.confirm_delete = None
                     st.rerun()
 
-    # JD uploader (unchanged)
     st.title("Add JD")
     uploaded_jd = st.file_uploader("Upload JD", type=["md", "txt"])
     if st.button("Add JD"):
@@ -167,7 +156,6 @@ with st.sidebar:
             st.warning("Please choose a JD file first.")
 
 # ----------------- Main App -----------------
-# Make sure there's always some current session
 if not memory.current_session:
     memory.ensure_one_session()
 
@@ -179,7 +167,33 @@ if current:
     The app will analyze your resume and generate a match score, missing keywords, and tailored interview questions.
     """)
 
-    # UI Components
+    # -------- Extra Scoring Criteria (MAIN SCREEN) --------
+    extra_val = memory.get_extra_criteria(memory.current_session)
+    if not st.session_state.show_extra_criteria:
+        if st.button("➕ Extra Scoring Criteria"):
+            st.session_state.show_extra_criteria = True
+            st.rerun()
+    else:
+        with st.expander("Extra Scoring Criteria", expanded=True):
+            new_extra = st.text_area(
+                "Add bullet-pointed criteria that should influence the score",
+                value=extra_val,
+                placeholder="Enter around 5 extra criteria, in bulletpoints for maxium efficiency",
+                height=160,
+                key="extra_criteria_text",
+            )
+            col_apply, col_clear = st.columns([0.3, 0.7])
+            with col_apply:
+                if st.button("Save Criteria", type="primary"):
+                    memory.set_extra_criteria(memory.current_session, new_extra.strip())
+                    st.success("Saved.")
+            with col_clear:
+                if st.button("Clear"):
+                    memory.set_extra_criteria(memory.current_session, "")
+                    st.session_state.extra_criteria_text = ""
+                    st.experimental_rerun()
+
+    # -------- JD / Resume --------
     JD_DIR = os.path.join(os.path.dirname(__file__), "documents", "JD")
     os.makedirs(JD_DIR, exist_ok=True)
     jd_files = [f for f in os.listdir(JD_DIR) if f.endswith((".md", ".txt"))]
@@ -191,8 +205,13 @@ if current:
         if uploaded_resume and selected_jd:
             with st.spinner("Analyzing..."):
                 jd_path = os.path.join(JD_DIR, selected_jd)
-                result = processor.analyze_resume(uploaded_resume, jd_path)
-                # Persist analysis + reset conversation
+                # Pass extra criteria when analyzing (ensure your ResumeProcessor forwards it into the graph state)
+                extra_criteria = memory.get_extra_criteria(memory.current_session).strip()
+                result = processor.analyze_resume(
+                    uploaded_resume,
+                    jd_path,
+                    extra_criteria=extra_criteria if extra_criteria else None,  # None -> omit in graph
+                )
                 memory.update_analysis(
                     memory.current_session,
                     analysis_result=result,
@@ -203,8 +222,8 @@ if current:
         else:
             st.warning("Please upload a resume and select a job description.")
 
-    # Display Analysis and Chat
-    current = memory.get_current()  # refresh local reference
+    # -------- Results & Chat --------
+    current = memory.get_current()
     if current and current["analysis_result"]:
         result = current["analysis_result"]
 
@@ -236,7 +255,6 @@ if current:
                     if "warning" in refinement_result:
                         st.warning(refinement_result["warning"])
                     else:
-                        # Persist updated questions & conversation history
                         memory.set_questions(memory.current_session, refinement_result.get("questions", []))
                         memory.replace_conversation(
                             memory.current_session,

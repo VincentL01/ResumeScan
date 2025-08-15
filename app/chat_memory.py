@@ -8,23 +8,13 @@ from typing import Dict, Any, Optional, List
 class ChatMemory:
     """
     Lightweight session persistence for ResumeScan.
-    Stores sessions, current_session, analysis_result, questions, and conversation_history
+    Stores sessions, current_session, analysis_result, questions, conversation_history, extra_criteria
     in data/sessions.json (atomic writes; tolerant loader).
-
-    Each session dict structure:
-    {
-        "name": str,
-        "analysis_result": dict | None,
-        "questions": list[dict],
-        "conversation_history": list[dict]  # e.g. [{"role":"user","content":"..."}, {"role":"assistant","content":"..."}]
-    }
     """
 
     def __init__(self, base_dir: Optional[Path] = None, filename: str = "sessions.json") -> None:
-        # default base_dir = project root (parent of app/)
         if base_dir is None:
-            # .../project/app/chat_memory.py -> project/
-            base_dir = Path(__file__).resolve().parents[1]
+            base_dir = Path(__file__).resolve().parents[1]  # project root
         self.data_dir = Path(base_dir) / "data"
         self.data_dir.mkdir(parents=True, exist_ok=True)
         self.path = self.data_dir / filename
@@ -43,15 +33,11 @@ class ChatMemory:
         tmp.replace(self.path)
 
     def save(self) -> None:
-        payload = {
-            "sessions": self.sessions,
-            "current_session": self.current_session,
-        }
+        payload = {"sessions": self.sessions, "current_session": self.current_session}
         self._atomic_write_json(payload)
 
     def load(self) -> None:
         if not self.path.exists():
-            # initialize empty file
             self.save()
             return
         try:
@@ -59,11 +45,9 @@ class ChatMemory:
                 payload = json.load(f)
             self.sessions = payload.get("sessions", {}) or {}
             self.current_session = payload.get("current_session")
-            # sanity fallback
             if self.current_session and self.current_session not in self.sessions:
                 self.current_session = None
         except Exception:
-            # corrupted file -> do not overwrite; start ephemeral state
             self.sessions = {}
             self.current_session = None
 
@@ -78,6 +62,7 @@ class ChatMemory:
             "analysis_result": None,
             "conversation_history": [],
             "questions": [],
+            "extra_criteria": "",  # NEW
         }
         self.current_session = sid
         self.save()
@@ -136,6 +121,18 @@ class ChatMemory:
         self.sessions[session_id]["conversation_history"].append({"role": role, "content": content})
         self.save()
 
+    # Extra criteria (NEW)
+    def set_extra_criteria(self, session_id: str, text: str) -> None:
+        if session_id not in self.sessions:
+            return
+        self.sessions[session_id]["extra_criteria"] = text or ""
+        self.save()
+
+    def get_extra_criteria(self, session_id: str) -> str:
+        if session_id not in self.sessions:
+            return ""
+        return self.sessions[session_id].get("extra_criteria", "") or ""
+
     # ----------------- Accessors -----------------
 
     def get_current(self) -> Optional[Dict[str, Any]]:
@@ -147,6 +144,5 @@ class ChatMemory:
         if not self.sessions:
             self.create_session()
         if not self.current_session:
-            # pick first in dict order
             self.current_session = next(iter(self.sessions))
             self.save()

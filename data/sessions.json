@@ -3,69 +3,57 @@
     "session_1": {
       "name": "Session 1",
       "analysis_result": {
-        "score": 75,
+        "score": 82,
         "missing_skills": [],
-        "summary": "The candidate possesses a strong foundation in core data engineering skills, especially with Python, SQL, and Spark, along with relevant experience in cloud platforms and data orchestration tools. While they align well with the job requirements, they are missing several specific tools and technologies outlined in the job description, particularly in cloud services and CI/CD practices. Overall, the candidate's technical expertise and experience in data processing and machine learning present a solid basis for the role.",
+        "summary": "The candidate possesses strong foundational skills in programming, cloud platforms, and data technologies that align well with the job description. With extensive experience in building data pipelines using Spark and Python, as well as a solid understanding of data governance and quality, the candidate is well-prepared for the data engineer role. However, there are some gaps in specific tools and technologies that are critical for the position.",
         "questions": [
           {
-            "question": "\"Can you explain your experience with AWS and Azure, specifically highlighting any services you have used extensively?\"",
-            "expected_answer": "\"I have significant experience with AWS services such as S3 for storage and EC2 for computing. I’ve also worked with Azure SQL Server and Event Hub. However, I recognize that I haven’t used AWS Glue or Azure Data Factory extensively. I am eager to learn about these services, as I understand their importance in data integration and workflow automation.\""
+            "question": "\"Can you elaborate on your experience with AWS and Azure, specifically mentioning any tools like AWS Glue or Azure Data Factory that you have used?\"",
+            "expected_answer": "\"I have extensive experience using AWS services such as S3 and EC2, as well as Azure services like SQL Server and Cosmos DB. However, I haven't had the opportunity to work with AWS Glue or Azure Data Factory directly. I am aware of their functionalities and have researched them, and I'm eager to learn and apply those tools in my projects.\""
           },
           {
-            "question": "\"What experience do you have with real-time data streaming technologies? Can you describe a project where you implemented such technology?\"",
-            "expected_answer": "\"I have primarily worked with batch processing using Spark, but I have limited experience with real-time streaming technologies like Kinesis or Pub/Sub. In my previous role, I was involved in a project that relied on batch processing, but I am keen to expand my knowledge in real-time data processing and am actively researching these technologies to understand their implementation better.\""
+            "question": "\"What tools have you used for data orchestration, and can you describe a project where you implemented orchestration in your data pipeline?\"",
+            "expected_answer": "\"While I have experience in building data pipelines, I haven't specifically worked with orchestration tools like Airflow or Dagster. I have implemented scheduling and management tasks through basic scripts and cron jobs, but I recognize the benefits of dedicated orchestration tools and am keen to gain hands-on experience with them.\""
           },
           {
-            "question": "\"What CI/CD tools have you used in your projects, and how have they improved your development workflow?\"",
-            "expected_answer": "\"I have used Jenkins for CI/CD in some projects, but I haven't had exposure to GitHub Actions or GitLab CI. I understand that these tools can streamline deployment processes and enhance collaboration within teams. I am interested in learning about Docker for containerization as well, which could further improve the deployment pipeline.\""
+            "question": "\"Could you discuss any experience you have with real-time data streaming technologies, such as Kinesis or Pub/Sub?\"",
+            "expected_answer": "\"I have not worked directly with Kinesis or Pub/Sub, but I have experience with data processing frameworks like Spark and Kafka, which have real-time capabilities. I understand the principles of real-time data streaming and am motivated to explore these technologies further to enhance my skill set.\""
           },
           {
-            "question": "\"Can you discuss any data quality frameworks you have experience with? How do you ensure the integrity of data in your projects?\"",
-            "expected_answer": "\"I have not specifically used Great Expectations or any formal data quality frameworks in my projects. I typically rely on manual checks and validation scripts to ensure data integrity. However, I understand the importance of a structured framework for maintaining data quality and am open to learning about tools like Great Expectations to implement better practices in future projects.\""
+            "question": "\"What is your experience with CI/CD tools, particularly GitHub Actions or similar tools, in your data engineering projects?\"",
+            "expected_answer": "\"I have primarily used manual deployment processes and basic version control with Git. I haven't implemented CI/CD pipelines with tools like GitHub Actions, but I recognize their importance in automating deployments and ensuring code quality. I am eager to learn and implement CI/CD practices in future projects.\""
           },
           {
-            "question": "\"Could you describe a situation where you had to communicate complex technical information to a non-technical audience? How did you approach it?\"",
-            "expected_answer": "\"While I have primarily worked in technical roles with limited customer interaction, I once had to present a data analysis project to a group of stakeholders. I focused on simplifying the data insights and avoiding jargon, using visual aids to help convey my points. I know that enhancing my communication skills is crucial for roles that require customer-facing experience, and I am actively seeking opportunities to improve in this area.\""
+            "question": "\"Can you describe your approach to documenting data workflows and specifications? Have you faced any challenges in this area?\"",
+            "expected_answer": "\"I have been involved in documentation as part of my role, but I realize I haven't had a formalized approach to documenting workflows and specifications. I understand the importance of clear documentation for data governance and collaboration, and I am looking to improve my skills in this area by adopting best practices and frameworks for thorough documentation.\""
           }
         ],
-        "comparison_result": "**Matching Skills:**\n\n* **Programming:** Python, SQL (Both)\n* **Data Technologies:** Spark, Kafka, Delta Lake, Iceberg (Both)\n* **Cloud Platforms:** AWS (S3, EC2), Azure (SQL Server, Event Hub) (Partially matches)\n* **Databases:** CosmosDB, MinIO (Both)\n* **Data Processing:** PySpark (Both)\n* **Data Orchestration:** Airflow (Both)\n* **Machine Learning:** Scikit-learn, PyTorch (Both)\n\n**Missing Skills:**\n\n* **Cloud Platforms:** Missing AWS Glue, Lambda, and Redshift; Azure Data Factory (ADF) and Synapse not mentioned.\n* **Data Technologies:** No mention of Apache Hudi.\n* **Real-Time Data Streaming:** Kinesis or Pub/Sub not included.\n* **Storage Systems:** Azure Blob and HDFS not mentioned.\n* **CI/CD Tools:** GitHub Actions and GitLab CI not mentioned; Docker for containerization not mentioned.\n* **Data Quality Frameworks:** Great Expectations not included.\n* **Customer-Facing Experience:** No mention of customer-facing or communication roles, which is a plus for this position.\n\n**Summary of Alignment:**\n\nThe candidate possesses a strong foundation in core data engineering skills, especially with Python, SQL, and Spark, along with relevant experience in cloud platforms and data orchestration tools. While they align well with the job requirements, they are missing several specific tools and technologies outlined in the job description, particularly in cloud services and CI/CD practices. Overall, the candidate's technical expertise and experience in data processing and machine learning present a solid basis for the role.\n\n**Match Score (/100):**\n75/100"
+        "comparison_result": "**Matching Skills:**\n\n* **Programming:** Python, SQL (Both)\n* **Data Technologies:** Spark, Trino, Kafka, Soda-core, OpenMetadata, Atlas (Both)\n* **Cloud Platforms:** AWS (S3, EC2), Azure (SQL Server, Event Hub, Cosmos DB) (Both)\n* **Databases:** MSSQL Server, PostgreSQL, MySQL, Cosmos DB, MongoDB, DB2 (Both)\n* **Data Processing:** PySpark, Pandas, NumPy (Both)\n* **Machine Learning:** YOLO, Mask R-CNN, Scikit-learn (Both)\n* **Data Quality Frameworks:** Soda-core (Both)\n\n**Missing Skills:**\n\n* **Cloud Platforms:** AWS Glue, Azure Data Factory (ADF) not mentioned\n* **Data Orchestration:** Experience with Airflow or Dagster not explicitly mentioned (though some related work is indicated)\n* **Real-time Data Streaming:** Kinesis or Pub/Sub not mentioned\n* **Table Formats:** Apache Hudi not mentioned\n* **CI/CD Tools:** GitHub Actions or similar tools not mentioned\n* **Storage Systems:** Azure Blob Storage not explicitly mentioned\n* **Documentation Skills:** Although involved in documentation, explicit mention of experience in documenting data workflows and specifications is lacking.\n\n**Summary of Alignment:**\n\nThe candidate possesses strong foundational skills in programming, cloud platforms, and data technologies that align well with the job description. With extensive experience in building data pipelines using Spark and Python, as well as a solid understanding of data governance and quality, the candidate is well-prepared for the data engineer role. However, there are some gaps in specific tools and technologies that are critical for the position.\n\n**Match Score (/100):**\n82/100"
       },
-      "conversation_history": [
-        {
-          "role": "user",
-          "content": "Could you keep the questions above exactly the same and add 1 more question for a total of 6?"
-        },
-        {
-          "role": "assistant",
-          "content": "**Question 1: Programming Skills**\n\n**Question:** \"Can you describe your experience with Python and SQL in data engineering projects?\"\n\n**Expected Answer:** The candidate should detail specific projects where they utilized Python and SQL, including any frameworks or libraries they used and the outcomes of those projects.\n\n**Question 2: Data Technologies**\n\n**Question:** \"What has been your experience with Spark and Kafka in data processing?\"\n\n**Expected Answer:** The candidate should provide examples of how they have implemented Spark and Kafka, discussing the data pipelines they built and any challenges they faced.\n\n**Question 3: Cloud Platforms**\n\n**Question:** \"How have you utilized AWS or Azure in your previous roles, specifically with cloud data services?\"\n\n**Expected Answer:** The candidate should explain their experience with specific cloud services, highlighting any relevant projects and how they used services like S3, EC2, SQL Server, or Event Hub.\n\n**Question 4: Data Orchestration**\n\n**Question:** \"Can you walk us through a project where you used Airflow for data orchestration?\"\n\n**Expected Answer:** The candidate should describe a project where they implemented Airflow, detailing the workflows they managed and how they ensured data reliability.\n\n**Question 5: CI/CD Practices**\n\n**Question:** \"What CI/CD tools have you used in your data engineering projects, and how did they benefit your workflow?\"\n\n**Expected Answer:** The candidate should mention specific tools like GitHub Actions, GitLab CI, or Docker, discussing how they integrated these tools into their data workflows.\n\n**Question 6: Customer-Facing Experience**\n\n**Question:** \"Can you share an experience where you had to communicate technical information to non-technical stakeholders?\"\n\n**Expected Answer:** The candidate should provide an example of a situation where they effectively communicated complex data concepts to a non-technical audience, including the strategies they used to ensure understanding."
-        }
-      ],
+      "conversation_history": [],
       "questions": [
         {
-          "question": "\"Can you describe your experience with Python and SQL in data engineering projects?\"",
-          "expected_answer": "The candidate should detail specific projects where they utilized Python and SQL, including any frameworks or libraries they used and the outcomes of those projects."
+          "question": "\"Can you elaborate on your experience with AWS and Azure, specifically mentioning any tools like AWS Glue or Azure Data Factory that you have used?\"",
+          "expected_answer": "\"I have extensive experience using AWS services such as S3 and EC2, as well as Azure services like SQL Server and Cosmos DB. However, I haven't had the opportunity to work with AWS Glue or Azure Data Factory directly. I am aware of their functionalities and have researched them, and I'm eager to learn and apply those tools in my projects.\""
         },
         {
-          "question": "\"What has been your experience with Spark and Kafka in data processing?\"",
-          "expected_answer": "The candidate should provide examples of how they have implemented Spark and Kafka, discussing the data pipelines they built and any challenges they faced."
+          "question": "\"What tools have you used for data orchestration, and can you describe a project where you implemented orchestration in your data pipeline?\"",
+          "expected_answer": "\"While I have experience in building data pipelines, I haven't specifically worked with orchestration tools like Airflow or Dagster. I have implemented scheduling and management tasks through basic scripts and cron jobs, but I recognize the benefits of dedicated orchestration tools and am keen to gain hands-on experience with them.\""
         },
         {
-          "question": "\"How have you utilized AWS or Azure in your previous roles, specifically with cloud data services?\"",
-          "expected_answer": "The candidate should explain their experience with specific cloud services, highlighting any relevant projects and how they used services like S3, EC2, SQL Server, or Event Hub."
+          "question": "\"Could you discuss any experience you have with real-time data streaming technologies, such as Kinesis or Pub/Sub?\"",
+          "expected_answer": "\"I have not worked directly with Kinesis or Pub/Sub, but I have experience with data processing frameworks like Spark and Kafka, which have real-time capabilities. I understand the principles of real-time data streaming and am motivated to explore these technologies further to enhance my skill set.\""
         },
         {
-          "question": "\"Can you walk us through a project where you used Airflow for data orchestration?\"",
-          "expected_answer": "The candidate should describe a project where they implemented Airflow, detailing the workflows they managed and how they ensured data reliability."
+          "question": "\"What is your experience with CI/CD tools, particularly GitHub Actions or similar tools, in your data engineering projects?\"",
+          "expected_answer": "\"I have primarily used manual deployment processes and basic version control with Git. I haven't implemented CI/CD pipelines with tools like GitHub Actions, but I recognize their importance in automating deployments and ensuring code quality. I am eager to learn and implement CI/CD practices in future projects.\""
         },
         {
-          "question": "\"What CI/CD tools have you used in your data engineering projects, and how did they benefit your workflow?\"",
-          "expected_answer": "The candidate should mention specific tools like GitHub Actions, GitLab CI, or Docker, discussing how they integrated these tools into their data workflows."
-        },
-        {
-          "question": "\"Can you share an experience where you had to communicate technical information to non-technical stakeholders?\"",
-          "expected_answer": "The candidate should provide an example of a situation where they effectively communicated complex data concepts to a non-technical audience, including the strategies they used to ensure understanding."
+          "question": "\"Can you describe your approach to documenting data workflows and specifications? Have you faced any challenges in this area?\"",
+          "expected_answer": "\"I have been involved in documentation as part of my role, but I realize I haven't had a formalized approach to documenting workflows and specifications. I understand the importance of clear documentation for data governance and collaboration, and I am looking to improve my skills in this area by adopting best practices and frameworks for thorough documentation.\""
         }
-      ]
+      ],
+      "extra_criteria": "- If User experienced with Spark -> Give extra point\n- If User has equivalent Cloud experience even if with different CSP, decrease half the point as you would have"
     }
   },
   "current_session": "session_1"

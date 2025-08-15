@@ -10,7 +10,7 @@ class ResumeProcessor:
     def __init__(self):
         self.vector_store = VectorStore()
 
-    def analyze_resume(self, uploaded_resume, jd_path: str) -> Dict:
+    def analyze_resume(self, uploaded_resume, jd_path: str, extra_criteria: str = None) -> Dict:
         resume_text = get_resume_text(uploaded_resume)
         jd_text = get_jd_text(jd_path)
 
@@ -19,6 +19,7 @@ class ResumeProcessor:
             {
                 "resume_text": resume_text,
                 "jd_text": jd_text,
+                "extra_criteria": extra_criteria
             },
             config={"configurable": {"thread_id": str(uuid.uuid4())}}
         )
@@ -35,18 +36,18 @@ class ResumeProcessor:
                 questions = question_raw_parser(raw)
             
             # Embed and upsert to Pinecone
-            try:
-                resume_embedding = self.vector_store.get_embedding(resume_text)
-                jd_embedding = self.vector_store.get_embedding(jd_text)
+            # try:
+            #     resume_embedding = self.vector_store.get_embedding(resume_text)
+            #     jd_embedding = self.vector_store.get_embedding(jd_text)
                 
-                vectors = [
-                    {"id": f"resume_{uuid.uuid4()}", "values": resume_embedding, "metadata": {"type": "resume", "text": resume_text[:40000]}},
-                    {"id": f"jd_{uuid.uuid4()}", "values": jd_embedding, "metadata": {"type": "jd", "text": jd_text[:40000]}}
-                ]
+            #     vectors = [
+            #         {"id": f"resume_{uuid.uuid4()}", "values": resume_embedding, "metadata": {"type": "resume", "text": resume_text[:40000]}},
+            #         {"id": f"jd_{uuid.uuid4()}", "values": jd_embedding, "metadata": {"type": "jd", "text": jd_text[:40000]}}
+            #     ]
                 
-                self.vector_store.upsert_to_pinecone(vectors)
-            except Exception as e:
-                st.error(f"Failed to save embeddings to Pinecone: {e}")
+            #     self.vector_store.upsert_to_pinecone(vectors)
+            # except Exception as e:
+            #     st.error(f"Failed to save embeddings to Pinecone: {e}")
         return {
             "score": score,
             "missing_skills": missing_skills,
