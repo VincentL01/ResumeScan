@@ -1,6 +1,5 @@
-import streamlit as st
-from typing import List
 import numpy as np
+from typing import List
 from openai import OpenAI
 from pinecone import Pinecone, ServerlessSpec
 from app.configs import EMBED_API_KEY, BASE_URL, EMBED_MODEL, PINECONE_API_KEY, PINECONE_INDEX_NAME, EMBEDDING_DIMENSIONS
